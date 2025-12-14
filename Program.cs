@@ -1,12 +1,16 @@
+using Microsoft.EntityFrameworkCorej;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container
+builder.services.AddDbContext<ApplicationDbContext>(options => 
+    options.useSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors();
+
 builder.Services.addSwaggerGen(options =>
 {
     // Configure Swagger metadata
