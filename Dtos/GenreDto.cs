@@ -1,7 +1,8 @@
-﻿using System;
-
-public class GenreDto
+﻿namespace Movies.Dtos
 {
-    [MaxLength(100)]
-    public string Name { get; set; }
+    public class GenreDto
+    {
+        [MaxLength(100)]
+        public string Name { get; set; }
+    }
 }
