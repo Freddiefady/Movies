@@ -8,6 +8,8 @@ namespace Movies.Models
 		{
 		}
 
-		public DbSet<Genre> Genres { get; set; } = null!;
+		public DbSet<Genre> Genres { get; set; }
+
+		public DbSet<Movie> Movies { get; set; }
 	}
 }
