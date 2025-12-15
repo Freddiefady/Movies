@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Scheme;
-
-namespace Movies.Models
+﻿namespace Movies.Models
 {
 	public class Genre
 	{
