@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Movies.Services;
 
 namespace Movies.Controllers
 {
@@ -7,50 +8,49 @@ namespace Movies.Controllers
 	[ApiController]
 	public class GenresController : ControllerBase
 	{
-        private readonly Models.ApplicationDbContext _context;
+        private readonly IGenresService _genresService;
 
-		public GenresController(Models.ApplicationDbContext context)
+		public GenresController(IGenresService genresService)
 		{
-			_context = context;
+			_genresService = genresService;
 		}
 
 		[HttpGet]
 		public async Task<IActionResult> Index()
 		{
-			var genres = await _context.Genres.ToList();
+			var genres = await _genresService.GetAll();
 			return Ok(genres);
 		}
 
 		[HttpGet("{id}")]
 		public async Task<IActionResult> Show(byte id)
 		{
-			var genre = await _context.Genres.Find(id);
+			var genre = await _genresService.GetByIdAsync(id);
 
-			if (genre.IsNull()) return NotFound();
+			if (genre == null) return NotFound();
 
 			return Ok(genre);
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> Store([FromBody] GenreDto genre)
+		public async Task<IActionResult> Store([FromBody] GenreDto dto)
 		{
 			var genre = new Genre { Name = dto.Name };
-
-			await _context.Add(genre);
-			_context.SaveChanges();
+			await _genresService.AddAsync(genre);
 
 			return Ok(genre);
 		}
 
 		[HttpPut("{id}")]
-		public async Task<IActionResult> Update(int id, [FromBody] GenreDto dto)
+		public async Task<IActionResult> Update(byte id, [FromBody] GenreDto dto)
 		{
-			var genre = await _context.Genres.SingleOrDefaultAsync(genre => genre.Id == id);
+			var genre = await _genresService.GetByIdAsync(id);
 
-			if (genre == null) return NotFound($"No Genre was Found with ID: {id}");
-			
+			if (genre == null)
+                return NotFound($"No Genre was Found with ID: {id}");
+
 			genre.Name = dto.Name;
-			_context.SaveChangesAsync();
+			_genresService.UpdateAsync(genre);
 
 			return NoContent();
 		}
@@ -58,12 +58,11 @@ namespace Movies.Controllers
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> Delete(byte id)
 		{
-			var genre = await _context.Genres.SingleOrDefaultAsync(genre => genre.Id == id);
+			var genre = await _genresService.GetByIdAsync(id);
 
 			if (genre == null) return NotFound($"No Genre was Found with ID: {id}");
 
-			_context.Remove(genre);
-			_context.SaveChangesAsync();
+			_genresService.DeleteAsync(genre);
 
 			return NoContent();
 		}
