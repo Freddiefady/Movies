@@ -1,56 +1,67 @@
-using Microsoft.EntityFrameworkCorej;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Movies.Services;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.services.AddDbContext<ApplicationDbContext>(options => 
-    options.useSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors();
 
-builder.Services.addSwaggerGen(options =>
+builder.Services.AddAutoMapper(typeof(Program));
+
+// Dependency Injection for Services
+// Created each time they are requested
+// Disposed at the end of the request.
+builder.Services.AddTransient<IGenresService, GenreService>();
+builder.Services.AddTransient<IMoviesService, MovieService>();
+
+builder.Services.AddSwaggerGen(options =>
 {
     // Configure Swagger metadata
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Movies Test",
         Version = "v1",
         Description = "This is a sample API for demonstration purposes.",
         TermsOfService = new Uri("https://example.com/terms"),
-        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        Contact = new OpenApiContact
         {
             Name = "Freddie Developer",
             Url = new Uri("https://example.com/support")
         },
-        License = new Microsoft.OpenApi.Models.OpenApiLicense
+        License = new OpenApiLicense
         {
             Name = "Use under LICX",
             Url = new Uri("https://example.com/license")
         }
     });
     // Define the security scheme
-    options.AddSecurityDefinition("Windows", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    options.AddSecurityDefinition("Windows", new OpenApiSecurityScheme
     {
         Name = "Authoriztions",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Type = SecuritySchemeType.Http,
         Scheme = "Bearer",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        In = ParameterLocation.Header,
         Description = "Enter your JWT key"
     });
     // Define the security requirement
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            new OpenApiSecurityScheme
             {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                Reference = new OpenApiReference
                 {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Type = ReferenceType.SecurityScheme,
                     Id = "Bearer",
-                }
+                },
+                Name = "Bearer",
             },
             Array.Empty<string>()
         }
@@ -73,7 +84,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.useSwaggger();
+    app.UseSwagger();
     app.MapOpenApi();
 }
 
@@ -89,5 +100,4 @@ app.UseCors(policy => policy
 app.UseAuthorization();
 
 app.MapControllers();
-    
 app.Run();
