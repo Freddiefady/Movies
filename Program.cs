@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Movies.Services;
 using Microsoft.OpenApi;
+using Movies.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,26 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors();
+// Add Global Exception Handler
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+// Add Problem Details support
+builder.Services.AddProblemDetails(configure =>
+{
+    configure.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+    };
+});
+
+/**
+* "type": "ValidationException",
+* "title": "An error occurred",
+* "status": 500,
+* "detail": "One or more validation errors occurred.",
+* "traceId": "23-sdfgjkhjkdfklgndvjnsdifpgbvlskmcods-348623676748hfb9byvb4",
+* "requestId": "9gj08n0nv030f83b4"
+*/
 
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -98,6 +119,9 @@ app.UseCors(policy => policy
 );
 
 app.UseAuthorization();
-
+// use built-in exception handler
+app.UseExceptionHandler();
+// Use the global exception handler middleware
+// app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.MapControllers();
 app.Run();
